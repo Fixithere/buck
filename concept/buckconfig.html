@@ -1,0 +1,225 @@
+<!doctype html><html xmlns="http://www.w3.org/1999/xhtml"><head prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns#"><script>var loc = new String(window.location); if (loc.indexOf('facebook.github.io/buck') != -1) {window.location.replace(loc.replace('facebook.github.io/buck', 'buckbuild.com'));}</script><title>Buck: .buckconfig</title><link type="image/png" rel="shortcut icon" href="/static/favicon.png" /><meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no" /><meta http-equiv="content-type" content="text/html;charset=utf-8"><link type="text/css" rel="stylesheet" href="/google-code-prettify/prettify.css" ><link type="text/css" rel="stylesheet" href="/static/buck.css"><meta property="og:locale" content="en_US"><meta property="og:title" content=".buckconfig"><meta property="og:site_name" content="Buck: a build tool"><meta property="og:image" content="http://buckbuild.com/static/og.png"><meta property="og:type" content="article"><meta property="og:description" content="An optional file that contains configuration information for Buck."><meta property="fb:admins" content="584556688222168"></head><body><div id="fb-root"></div><script>(function(d, s, id) {var js, fjs = d.getElementsByTagName(s)[0]; if (d.getElementById(id)) return; js = d.createElement(s); js.id = id; js.src = "//connect.facebook.net/en_US/all.js#xfbml=1&appId=584556688222168"; fjs.parentNode.insertBefore(js, fjs);}(document, 'script', 'facebook-jssdk'));</script><header class='topbar'><nav class='width'><a href='http://buckbuild.com/'><h1>Buck</h1></a><ul class='menu'><li><a href='/setup/quick_start.html'>Get Started</a><li><a href='https://groups.google.com/forum/#!forum/buck-build'>Group</a><li><a href='/javadoc/'>API</a><li><a href='https://github.com/facebook/buck'>GitHub</a></ul></nav></header><section class='content'><div class='width'><article><h1>.buckconfig</h1><div class="overview"><p>The root of your project may contain a configuration file named <code>.buckconfig</code>. If present, Buck will read this file before executing its business logic so that any customizations specified in <code>.buckconfig</code> will take effect. This file uses the <a href="http://en.wikipedia.org/wiki/INI_file">INI file format</a>.<p>The root of your project may also contain a second configuration file named <code>.buckconfig.local</code>. Its format is exactly the same as that of <code>.buckconfig</code>, but any definition in <code>.buckconfig.local</code> will override that of <code>.buckconfig</code>. In practice, <code>.buckconfig</code> will be a version-controlled file that contains settings that are applicable to all team members (such as standard includes for build files), whereas <code>.buckconfig.local</code> will be excluded from version control because it contains user-specific overrides (such as personal aliases).<p>If a configuration option is not found in the project's <code>.buckconfig</code>, it will fall back to a <code>.buckconfig</code> file and <code>.buckconfig.d</code> directory in your home directory. Each of those has the same format as a <code>.buckconfig</code> file but will have any settings overridden by project-specific configurations. If you have build issues, make sure that there is nothing in your <code>.buckconfig</code> or <code>.buckconfig.d</code> that could be conflicting with the project you're trying to build.<p>The following sections are recognized by Buck:<p><a href="#adb"><code>[adb]</code></a><br><a href="#alias"><code>[alias]</code></a><br><a href="#android"><code>[android]</code></a><br><a href="#build"><code>[build]</code></a><br><a href="#buildfile"><code>[buildfile]</code></a><br><a href="#cache"><code>[cache]</code></a><br><a href="#color"><code>[color]</code></a><br><a href="#cxx"><code>[cxx]</code></a><br><a href="#java"><code>[java]</code></a><br><a href="#httpserver"><code>[httpserver]</code></a><br><a href="#log"><code>[log]</code></a><br><a href="#ndk"><code>[ndk]</code></a><br><a href="#project"><code>[project]</code></a><br><a href="#test"><code>[test]</code></a><br><a href="#thrift"><code>[thrift]</code></a><br><a href="#tools"><code>[tools]</code></a><br><h2 id="adb">[adb]</h2><p>This section controls adb restart behavior on errors.<pre class="prettyprint lang-ini">
+[adb]
+  # This specifies a whether to restart adb on failure or not.
+  adb_restart_on_failure = true
+</pre><h2 id="alias">[alias]</h2><p>As demonstrated in the <a href="/setup/quick_start.html">Quick Start</a> instructions, aliases for build targets can be defined in <code>.buckconfig</code>:<pre class="prettyprint lang-ini">
+[alias]
+  app     = //apps/myapp:app
+  apptest = //apps/myapp:test
+</pre><p>This facilitates command-line use:<pre class="prettyprint">
+$ buck build app
+$ buck test apptest
+</pre>Note that you can also suffix aliases with flavors:<pre class="prettyprint">
+$ buck build app#src_jar
+# This will expand the alias and effectively build the target returned by:
+$ buck targets --resolve-alias app#src_jar
+//apps/myapp:app#src_jar
+</pre><h2 id="android">[android]</h2><p>Specify the version of the Android SDK that all Android code in the project should be built against as follows:<pre class="prettyprint lang-ini">
+[android]
+  target = Google Inc.:Google APIs:21
+</pre><p>If the SDK version is not specified in your <code>.buckconfig</code> file, the version of the SDK that Buck has chosen will be printed to the console.<p>You can find the list of valid values on your system by running <code>android list targets --compact</code>.<h2 id="build">[build]</h2><p>This section includes settings that control build engine behavior.<pre class="prettyprint lang-ini">
+[build]
+  # Build engine mode.
+  #
+  # engine_mode is one of:
+  #   deep     : When building a target, ensure that all transitive
+  #              dependencies of that target are materialized locally.
+  #   shallow  : When building a target, don't require that it's
+  #              transitive dependencies are materialized locally.
+  #
+  # The default is shallow.
+  engine_mode = shallow
+</pre><h2 id="buildfile">[buildfile]</h2><p>This section may define an <code>includes</code> property that can specify a path to a file of macros and constants that will automatically be included in every build file. Therefore, defining the following:<pre class="prettyprint lang-ini">
+[buildfile]
+  includes = //core/DEFS
+</pre>is the equivalent of manually invoking <code>include_defs('//core/DEFS')</code> at the start of every build file. See <a href="/function/include_defs.html"><code>include_defs()</code></a> for more details.<h2 id="cache">[cache]</h2><p>This section configures build artifact caching, which can be disabled (default), on the filesystem, or in a distributed cache that can be shared among developers. Note that the <code>mode</code> property determines which other properties, if any, are relevant to caching configuration; the irrelevant properties are ignored. The following example configures Buck to use both directory-based and http caching.<pre class="prettyprint lang-ini">
+[cache]
+    # Build artifact caching configuration.
+    #
+    # mode is a comma-separated set of caching mechanisms to use:
+    #   dir       : Use a directory-based cache.
+    #   http      : Use an http cache.
+    #
+    # The default set is empty.
+    mode = dir, http
+
+    # Directory path used for directory-based caching. The default directory
+    # is buck-cache.
+    dir = buck-cache
+
+    # The maximum cache size for directory-based caching. The default size
+    # is unlimited.
+    dir_max_size = 10GB
+
+    # URL for http cache. The default is http://localhost:8080.
+    http_url = http://localhost:8080
+
+    # Whether the http cache is readonly or readwrite. The default is
+    # readwrite.
+    http_mode = readwrite
+
+    # Timeout for http requests (defaults to 3 seconds).
+    http_timeout_seconds = 3
+</pre>Buck communicates with the http cache using a <a href="/concept/http_cache_api.html">simple API</a>.<h2 id="color">[color]</h2><p>Specify the following to disable colorized output:<pre class="prettyprint lang-ini">
+[color]
+  ui = false
+</pre><h2 id="cxx">[cxx]</h2><p>This section configures the paths to the C++ toolchain's binaries.<pre class="prettyprint lang-ini">
+[cxx]
+  # Path to the C preprocessor
+  cpp = /usr/bin/gcc
+
+  # Path to the C compiler
+  cc = /usr/bin/gcc
+
+  # Path to the C linker
+  ld = /usr/bin/ld
+
+  # Path to the C++ preprocessor
+  cxxpp = /usr/bin/g++
+
+  # Path to the C++ compiler
+  cxx = /usr/bin/g++
+
+  # Path to the c++ linker
+  cxxld = /usr/bin/g++
+
+  # Path to the assembly preprocessor
+  aspp = /usr/bin/gcc
+
+  # Path to the assembler
+  as = /usr/bin/as
+
+  # Path to the archiver
+  ar = /usr/bin/ar
+
+  # Path to the lexer
+  lex = /usr/bin/flex
+
+  # Path to the compiler compiler
+  yacc = /usr/bin/bison
+</pre>It also configures configures the default flags to pass to all invocations of said binaries.<pre class="prettyprint lang-ini">
+[cxx]
+  # Flags to pass to the C preprocessor
+  cppflags =
+
+  # Flags to pass to the C compiler and preprocessor
+  cflags =
+
+  # Flags to pass to the C linker
+  ldflags =
+
+  # Flags to pass to the C++ preprocessor
+  cxxppflags =
+
+  # Flags to pass to the C++ compiler and preprocessor
+  cxxflags =
+
+  # Flags to pass to the c++ linker
+  cxxldflags =
+
+  # Flags to pass to the assembly preprocessor
+  asppflags =
+
+  # Flags to pass to the assembler and assembly preprocessor
+  asflags =
+
+  # Flags to pass to the archiver
+  arflags =
+
+  # Flags to pass to the lexer
+  lexflags =
+
+  # Flags to pass to the compiler compiler
+  yaccflags =
+</pre>Adding a section with header [cxx#<i>flavor</i>] to the .buckconfig will add an alternate cxx section. This cxx section will be used instead of [cxx] if the compilation flavor is invoked by appending <i>#flavor</i> to a build target. So to build with [cxx#example] rather than [cxx] use<p><pre class="prettyprint">
+$ buck build app#example
+</pre><h2 id="java">[java]</h2><p>This section may define a <code>src_roots</code> property that specifies file paths to roots of Java code (where a root contains a tree of Java folders where the folder structure mirrors the package structure). This list of paths is comma-delimited. Paths that start with a slash are relative to the root of the project. All other paths can match a folder anywhere in the tree. For example:<pre class="prettyprint lang-ini">
+[java]
+  src_roots = src, /java/, /javatests/
+</pre>Will match the <code>java</code> and <code>javatests</code> folders in the root of the project, as well as any folder named <code>src</code> in the project.<p><strong>Note:</strong> This is primarily used as a hack to help determine where resources from a <code>java_library()</code> should be placed within the generated JAR file. Hopefully <code>src_roots</code> will be removed at some point.<p>This section may also contain an "extra_arguments" property, which provides a comma-separated list of options to give to the Java compiler.<p>"source_level" and "target_level" specify the version of Java for source files and generated code, respectively.  Both default to "7".<h2 id="httpserver">[httpserver]</h2><p>Option to enable an experimental web server that presents a UI to explore build data. Note that Buck must be run as a daemon in order for the web server to be available.<p>Specifying the port is sufficient to enable the web server:<pre class="prettyprint lang-ini">
+[httpserver]
+  # The web server will be available at http://localhost:8080/.
+  port = 8080
+</pre><p>If you want Buck to find a free port and use that (i.e., an <em>ephemeral port</em>), then specify a value of <code>0</code>:<pre class="prettyprint lang-ini">
+[httpserver]
+  # The web server will be available at http://localhost:XXXX/.
+  # Buck will print out the value of XXXX that it chose when the build
+  # is complete. This value will be valid so long as the daemon is
+  # kept alive.
+  #
+  # It is common for `port = 0` to be used in a shared .buckconfig file
+  # for a project. Then individuals may override this value in
+  # .buckconfig.local for each checkout of the repository so that the
+  # port is predictable and guaranteed not to overlap with a port from
+  # another checkout of the same project.
+  port = 0
+</pre><p>If you want to disable the web server, specify a value of <code>-1</code> for the port:<pre class="prettyprint lang-ini">
+[httpserver]
+  # This will disable the web server. This often happens when
+  # a nonnegative port is specified in .buckconfig, but the user
+  # wants to override this behavior in .buckconfig.local.
+  port = -1
+</pre><h2 id="log">[log]</h2><p>This section controls how Buck will log information about builds for later inspection.<pre class="prettyprint lang-ini">
+[log]
+  max_traces = 25
+</pre><p>Will limit Buck to creating, at most, 25 <a href="/about/performance_tuning.html">Chrome Traces</a>.</p><pre class="prettyprint lang-ini">
+[log]
+  compress_traces = true
+</pre><p>Will compress the traces with GZIP.</p><h2 id="ndk">[ndk]</h2><p>This section defines properties to configure building native code against the Android NDK. This section may define both <code>min_version</code> and <code>max_version</code> properties to enable Buck to check before building an <a href="/rule/ndk_library.html"><code>ndk_library</code></a> that the project supports the configured NDK. Both properties must be specified to enable this check. For example, to support only versions r7 through r8d:<pre class="prettyprint lang-ini">
+[ndk]
+  min_version = r7
+  max_version = r8d
+</pre>This section may also define an <code>app_platform</code> which is the android platform libraries should target.  This is equivalent to <code>APP_TARGET</code> in the NDK build system.  This setting defaults to <code>android-9</code>.<pre class="prettyprint lang-ini">
+[ndk]
+  app_platform = android-21
+</pre>This section also supports parameters to control how <a href="/rule/cxx_library.html"><code>cxx_library</code></a> rules build C/C++ for NDK platforms:<pre class="prettyprint lang-ini">
+[ndk]
+  # The compiler family to use, either "gcc" or "clang".  The default is "gcc".
+  compiler = gcc
+
+  # The version of GCC to use from the provided NDK.  This will be used whether
+  # "gcc" is selected above or not, as other compiler families still use tools
+  # from the "gcc" toolchain (e.g. `ar`).  The default is "4.8".
+  gcc_version = 4.8
+
+  # The version of Clang to use from the provided NDK when "clang" is selected
+  # above.  The default is "3.4".
+  clang_version = 3.4
+
+  # The variant of the C/C++ runtime to use, either "gnustl", "libcxx", "stlport",
+  # "gabixx", or "system" (http://www.kandroid.org/ndk/docs/CPLUSPLUS-SUPPORT.html).
+  # The default is "gnustl".
+  cxx_runtime = gnustl
+</pre><h2 id="project">[project]</h2><p>This section may define a <code>default_android_manifest</code> property to identify the <code>AndroidManifest.xml</code> that should be used when the <code>src_target</code> of a <a href="/rule/project_config.html"><code>project_config()</code></a> rule is an Android rule (e.g., <a href="/rule/android_library.html"><code>android_library()</code></a>), but there is no <code>AndroidManifest.xml</code> file in the same directory as the build file. Because an IDE configuration for an Android project needs an <code>AndroidManifest.xml</code>, this provides a convenient fallback, preventing the need to litter your project with boilerplate <code>AndroidManifest.xml</code> files.<pre class="prettyprint lang-ini">
+[project]
+  default_android_manifest = //shared/AndroidManifest.xml
+</pre>This section may also define an <code>initial_targets</code> property, which is a space-delimited list of build targets to run when <code>buck project</code> is executed. Frequently, this is a list of <code>genrule</code>s whose outputs need to exist in order for an IDE to be able to build a project natively (i.e., without the help of Buck).<p>For example, if you had a <code>genrule()</code> for generating a JAR from a <a href="http://thrift.apache.org/">Thrift definition file</a>, and you had a <code>java_library()</code> rule that depended on that JAR, then you would want to be sure that <code>genrule()</code> was built before importing the project into IntelliJ because IntelliJ does not know how to build your <code>genrule()</code> as part of its built-in build process:<pre class="prettyprint lang-ini">
+[project]
+  initial_targets = //java/com/facebook/schema:generate_thrift_jar
+</pre>This section may also define an <code>ignore</code> property that specifies a comma-separated list of subtrees within the project root which are ignored in the following contexts:<ul><li>Buck daemon filesystem monitoring<li>Filesystem traversal when searching for tests and BUCK files<li>IntelliJ project indexing</ul>Buck automatically excludes its own output, e.g. <code>buck-out</code>, <code>.buckd</code>, and <code>.idea</code>, as well as the cache directory (see the "dir" setting of the "cache" section), but it makes no assumptions about source control systems.<pre class="prettyprint lang-ini">
+[project]
+  ignore = .git
+</pre>This section may also define a <code>temp_files</code> property that specifies a comma-separated list of <code>java.util.regex.Pattern</code> regular expressions which match temporary and backup files which should be ignored by Buck daemon filesystem monitoring. Setting this property to match any temporary files created by your IDE or editor will avoid unnecessary cache invalidation when using the Buck daemon.<pre class="prettyprint lang-ini">
+[project]
+  temp_files = ^#.*#$, .*~$, .*\.swp$
+</pre>A <code>post_process</code> property can reference a script that should be executed after the project files are generated. Because <code>buck project</code> is currently based on heuristics, the IntelliJ project that it generates may not be exactly what you want if you are using a non-traditional project structure. In these cases, you may want to let <code>buck project</code> do the bulk of the heavy-lifting, and then let your <code>post_process</code> script do some cleanup on the generated files.<pre class="prettyprint lang-ini">
+[project]
+  post_process = ./scripts/post_process_buck_project.sh
+</pre><h2 id="test">[test]</h2><p>This section may define a <code>timeout</code> for each test that Buck runs. The value given is in milliseconds.<pre class="prettyprint lang-ini">
+[test]
+  # This specifies a maximum timeout of 5 minutes (300000
+  # milliseconds) per test. A JUnit test can override this
+  # via its `@Test` annotation.
+  timeout = 300000
+</pre><h2 id="thrift">[thrift]</h2><p>This section provides settings to locate required thrift components.<pre class="prettyprint lang-ini">
+[thrift]
+  # The thrift compiler (https://thrift.apache.org).  Can be either a path
+  # or a build target that builds it.
+  compiler = /usr/local/bin/thrift
+
+  # The thrift2 compiler (https://github.com/facebook/fbthrift).  Can be
+  # either a path or a build target that builds it.
+  #
+  # If unset, defaults to the value in compiler, above.
+  compiler2 = //thrift2:compiler
+</pre><h2 id="tools">[tools]</h2><p>This section tells Buck how to find certain tools.<p>The <code>javac</code> option is a path to a program that acts like Java javac. When set, buck uses this program instead of the system Java compiler.<p>The <code>javac_jar</code> option is like <code>javac</code>, except that it points to a JAR containing a javac-like compiler.<p>When <code>javac_jar</code> is set, Buck loads the referenced compiler in-memory. When neither option is set, Buck defaults to using the system compiler in-memory.<p>The <code>proguard-max-heap-size</code> specifies how much memory is used when running proguard. Defaults to <code>1024M</code>.</p></div></article><nav><h3>Getting Started</h3><ul><li><a href="/">Overview</a><li><a href="/setup/quick_start.html">Quick Start</a><li><a href="/setup/install.html">Downloading and Installing Buck</a><li><a href="/article/exopackage.html">Exopackage</a></ul><h3>About</h3><ul><li><a href="/concept/what_makes_buck_so_fast.html">What Makes Buck so Fast?</a><li><a href="/concept/troubleshooting.html">Troubleshooting</a><li><a href="/about/performance_tuning.html">Performance Tuning</a><li><a href="/concept/faq.html">FAQ</a><li><a href="/presentations/">Learn More (Buck Presentations)</a></ul><h3>Concepts</h3><ul><li><a href="/concept/build_rule.html">Build Rule</a><li><a href="/concept/build_target.html">Build Target</a><li><a href="/concept/build_file.html">Build File</a><li><a href="/concept/buckversion.html">.buckversion</a><li><a href="/concept/nobuckcheck.html">.nobuckcheck</a><li><a href="/concept/buckjavaargs.html">.buckjavaargs</a><li><a href="/concept/buckconfig.html">.buckconfig</a><li><a href="/concept/build_target_pattern.html">Build Target Pattern</a><li><a href="/concept/visibility.html">Visibility</a><li><a href="/concept/http_cache_api.html">HTTP Cache API</a></ul><h3>Build Rules</h3><ul><li><strong>Core</strong></li><li><a href="/rule/genrule.html">genrule()</a><li><a href="/rule/remote_file.html">remote_file()</a><li><strong>Android</strong></li><li><a href="/rule/android_aar.html">android_aar()</a><li><a href="/rule/android_binary.html">android_binary()</a><li><a href="/rule/android_build_config.html">android_build_config()</a><li><a href="/rule/android_library.html">android_library()</a><li><a href="/rule/android_manifest.html">android_manifest()</a><li><a href="/rule/android_prebuilt_aar.html">android_prebuilt_aar()</a><li><a href="/rule/android_resource.html">android_resource()</a><li><a href="/rule/apk_genrule.html">apk_genrule()</a><li><a href="/rule/cxx_library.html">cxx_library()</a><li><a href="/rule/gen_aidl.html">gen_aidl()</a><li><a href="/rule/keystore.html">keystore()</a><li><a href="/rule/ndk_library.html">ndk_library()</a><li><a href="/rule/prebuilt_jar.html">prebuilt_jar()</a><li><a href="/rule/prebuilt_native_library.html">prebuilt_native_library()</a><li><a href="/rule/project_config.html">project_config()</a><li><strong>CXX</strong></li><li><a href="/rule/cxx_binary.html">cxx_binary()</a><li><a href="/rule/cxx_library.html">cxx_library()</a><li><a href="/rule/cxx_test.html">cxx_test()</a><li><a href="/rule/prebuilt_native_library.html">prebuilt_native_library()</a><li><strong>D</strong></li><li><a href="/rule/d_binary.html">d_binary()</a><li><a href="/rule/d_library.html">d_library()</a><li><a href="/rule/d_test.html">d_test()</a><li><strong>Java</strong></li><li><a href="/rule/cxx_library.html">cxx_library()</a><li><a href="/rule/java_binary.html">java_binary()</a><li><a href="/rule/java_library.html">java_library()</a><li><a href="/rule/java_test.html">java_test()</a><li><a href="/rule/prebuilt_jar.html">prebuilt_jar()</a><li><a href="/rule/prebuilt_native_library.html">prebuilt_native_library()</a><li><strong>Python</strong></li><li><a href="/rule/prebuilt_python_library.html">prebuilt_python_library()</a><li><a href="/rule/python_binary.html">python_binary()</a><li><a href="/rule/python_library.html">python_library()</a><li><a href="/rule/python_test.html">python_test()</a></ul><h3>Functions</h3><ul><li><a href="/function/glob.html">glob()</a><li><a href="/function/include_defs.html">include_defs()</a><li><a href="/function/string_parameter_macros.html">String Parameter Macros</a></ul><h3>Commands</h3><ul><li><a href="/command/common_parameters.html">Common Parameters</a><li><a href="/command/audit.html">buck audit</a><li><a href="/command/build.html">buck build</a><li><a href="/command/clean.html">buck clean</a><li><a href="/command/fetch.html">buck fetch</a><li><a href="/command/install.html">buck install</a><li><a href="/command/project.html">buck project</a><li><a href="/command/quickstart.html">buck quickstart</a><li><a href="/command/server.html">buck server</a><li><a href="/command/targets.html">buck targets</a><li><a href="/command/test.html">buck test</a><li><a href="/command/uninstall.html">buck uninstall</a><li><a href="/command/buckd.html">buckd</a></ul><h3>Extending Buck</h3><ul><li><a href="/extending/macros.html">Custom Macros</a><li><a href="/extending/rules.html">Custom Rules</a></ul><h3>Contributing to Buck</h3><ul><li><a href="https://groups.google.com/group/buck-build">Discussion Group</a><li><a href="https://github.com/facebook/buck/issues/new">Report a Bug</a><li><a href="/contributing/tour.html">Tour of the Codebase</a><li><a href="/contributing/development.html">Development Workflow</a><li><a href="/contributing/codestyle.html">Code Style</a><li><a href="/contributing/logging.html">Logging</a><li><a href="/contributing/immutables.html">Immutable Value Types</a><li><a href="/javadoc">API</a><li><a href="https://github.com/facebook/buck">Browse the Source Code</a></ul></ul></nav></div></section><footer><div class='width'>&copy; Copyright Facebook, 2013 -</div></footer><script src="/google-code-prettify/prettify.js"></script><script>prettyPrint()</script></body></html>
